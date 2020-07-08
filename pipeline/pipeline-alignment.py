@@ -268,10 +268,10 @@ def buildSalmonIndex(infile, outfile):
 # Alignment 
 '''
 # Single-end
-salmon quant -i transcripts_index -l A -r reads.fq.gz --validateMappings -o transcripts_quant
+salmon quant -i transcripts_index -l A -r reads.fq.gz -p 8 --validateMappings -o transcripts_quant
 
 # Paired-end
-salmon quant -i transcripts_index -l A -1 reads1.fq.gz -2 reads2.fq.gz --validateMappings -o transcripts_quant
+salmon quant -i transcripts_index -l A -1 reads1.fq.gz -2 reads2.fq.gz -p 8 --validateMappings -o transcripts_quant
 '''
 # See https://salmon.readthedocs.io/en/latest/salmon.html#what-s-this-libtype for info on -l flag
 
