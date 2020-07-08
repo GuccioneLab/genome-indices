@@ -1,0 +1,5 @@
+pipeline/logs
+genomes
+data
+_STARtmp
+*.sqlite

@@ -1,0 +1,58 @@
+Sender: LSF System <lsfadmin@lc01c07>
+Subject: Job 12081496: <20200707_102839_7F_S24_R1_001-kallisto.log-job> in cluster <chimera> Done
+
+Job <20200707_102839_7F_S24_R1_001-kallisto.log-job> was submitted from host <li03c04> by user <torred23> in cluster <chimera> at Tue Jul  7 10:28:39 2020
+Job was executed on host(s) <8*lc01c07>, in queue <express>, as user <torred23> in cluster <chimera> at Tue Jul  7 10:28:41 2020
+</hpc/users/torred23> was used as the home directory.
+</hpc/users/torred23/pipelines/guccione/covid_tcell> was used as the working directory.
+Started at Tue Jul  7 10:28:41 2020
+Terminated at Tue Jul  7 10:29:53 2020
+Results reported at Tue Jul  7 10:29:53 2020
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+#BSUB -P acc_GuccioneLab
+#BSUB -q express
+#BSUB -W 00:30
+#BSUB -R "rusage[mem=3000] span[ptile=8]"
+#BSUB -n 8
+#BSUB -J 20200707_102839_7F_S24_R1_001-kallisto.log-job
+#BSUB -o pipeline/logs/20200707_102839_7F_S24_R1_001-kallisto.log-job/20200707_102839_7F_S24_R1_001-kallisto.log-job.stdout
+#BSUB -eo pipeline/logs/20200707_102839_7F_S24_R1_001-kallisto.log-job/20200707_102839_7F_S24_R1_001-kallisto.log-job.stderr
+
+cd /hpc/users/torred23/pipelines/guccione/covid_tcell
+module load kallisto/0.46.1
+
+kallisto quant -i /sc/hydra/projects/GuccioneLab/genomes/hg38/kallisto/Homo_sapiens.GRCh38.cdna.all.idx -o hydra/s2-kallisto.dir/7F_S24_R1_001 --single -l 200 -s 20 -t 8 rawdata/7F_S24_R1_001.fastq.gz &> hydra/s2-kallisto.dir/7F_S24_R1_001/7F_S24_R1_001-kallisto.log
+
+module unload kallisto/0.46.1
+    
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   190.38 sec.
+    Max Memory :                                 3716 MB
+    Average Memory :                             3521.43 MB
+    Total Requested Memory :                     24000.00 MB
+    Delta Memory :                               20284.00 MB
+    Max Swap :                                   -
+    Max Processes :                              5
+    Max Threads :                                13
+    Run time :                                   72 sec.
+    Turnaround time :                            74 sec.
+
+The output (if any) follows:
+
+
+
+PS:
+
+Read file <pipeline/logs/20200707_102839_7F_S24_R1_001-kallisto.log-job/20200707_102839_7F_S24_R1_001-kallisto.log-job.stderr> for stderr output of this job.
+

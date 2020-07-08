@@ -1,0 +1,17 @@
+#!/bin/bash
+#BSUB -P acc_GuccioneLab
+#BSUB -q express
+#BSUB -W 00:30
+#BSUB -R "rusage[mem=3000] span[ptile=8]"
+#BSUB -n 8
+#BSUB -J 20200707_102839_7F_S24_R1_001-kallisto.log-job
+#BSUB -o pipeline/logs/20200707_102839_7F_S24_R1_001-kallisto.log-job/20200707_102839_7F_S24_R1_001-kallisto.log-job.stdout
+#BSUB -eo pipeline/logs/20200707_102839_7F_S24_R1_001-kallisto.log-job/20200707_102839_7F_S24_R1_001-kallisto.log-job.stderr
+
+cd /hpc/users/torred23/pipelines/guccione/covid_tcell
+module load kallisto/0.46.1
+
+kallisto quant -i /sc/hydra/projects/GuccioneLab/genomes/hg38/kallisto/Homo_sapiens.GRCh38.cdna.all.idx -o hydra/s2-kallisto.dir/7F_S24_R1_001 --single -l 200 -s 20 -t 8 rawdata/7F_S24_R1_001.fastq.gz &> hydra/s2-kallisto.dir/7F_S24_R1_001/7F_S24_R1_001-kallisto.log
+
+module unload kallisto/0.46.1
+    

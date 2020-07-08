@@ -1,0 +1,16 @@
+#!/bin/bash
+#BSUB -P acc_GuccioneLab
+#BSUB -q express
+#BSUB -W 02:00
+#BSUB -R "rusage[mem=6000] span[ptile=8]"
+#BSUB -n 8
+#BSUB -J 20200704_141415_7F_S24_R1_001-ReadsPerGene.out.tab-job
+#BSUB -o pipeline/logs/20200704_141415_7F_S24_R1_001-ReadsPerGene.out.tab-job/20200704_141415_7F_S24_R1_001-ReadsPerGene.out.tab-job.stdout
+#BSUB -eo pipeline/logs/20200704_141415_7F_S24_R1_001-ReadsPerGene.out.tab-job/20200704_141415_7F_S24_R1_001-ReadsPerGene.out.tab-job.stderr
+
+cd /hpc/users/torred23/pipelines/guccione/covid_tcell
+module load star/2.7.2a
+
+STAR --quantMode TranscriptomeSAM GeneCounts --genomeDir /sc/hydra/projects/GuccioneLab/genomes/hg38/STAR --readFilesIn rawdata/7F_S24_R1_001.fastq.gz --readFilesCommand zcat --outFileNamePrefix hydra/s2-star.dir/7F_S24_R1_001/7F_S24_R1_001- --runThreadN 8 --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonical --outSAMtype BAM SortedByCoordinate --limitIObufferSize 45000000 
+module unload star/2.7.2a
+    

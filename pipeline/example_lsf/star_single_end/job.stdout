@@ -1,0 +1,63 @@
+Sender: LSF System <lsfadmin@lc02a19>
+Subject: Job 11957508: <20200704_141415_7F_S24_R1_001-ReadsPerGene.out.tab-job> in cluster <chimera> Done
+
+Job <20200704_141415_7F_S24_R1_001-ReadsPerGene.out.tab-job> was submitted from host <li03c03> by user <torred23> in cluster <chimera> at Sat Jul  4 14:14:15 2020
+Job was executed on host(s) <8*lc02a19>, in queue <express>, as user <torred23> in cluster <chimera> at Sat Jul  4 14:22:33 2020
+</hpc/users/torred23> was used as the home directory.
+</hpc/users/torred23/pipelines/guccione/covid_tcell> was used as the working directory.
+Started at Sat Jul  4 14:22:33 2020
+Terminated at Sat Jul  4 14:25:10 2020
+Results reported at Sat Jul  4 14:25:10 2020
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+#BSUB -P acc_GuccioneLab
+#BSUB -q express
+#BSUB -W 02:00
+#BSUB -R "rusage[mem=6000] span[ptile=8]"
+#BSUB -n 8
+#BSUB -J 20200704_141415_7F_S24_R1_001-ReadsPerGene.out.tab-job
+#BSUB -o pipeline/logs/20200704_141415_7F_S24_R1_001-ReadsPerGene.out.tab-job/20200704_141415_7F_S24_R1_001-ReadsPerGene.out.tab-job.stdout
+#BSUB -eo pipeline/logs/20200704_141415_7F_S24_R1_001-ReadsPerGene.out.tab-job/20200704_141415_7F_S24_R1_001-ReadsPerGene.out.tab-job.stderr
+
+cd /hpc/users/torred23/pipelines/guccione/covid_tcell
+module load star/2.7.2a
+
+STAR --quantMode TranscriptomeSAM GeneCounts --genomeDir /sc/hydra/projects/GuccioneLab/genomes/hg38/STAR --readFilesIn rawdata/7F_S24_R1_001.fastq.gz --readFilesCommand zcat --outFileNamePrefix hydra/s2-star.dir/7F_S24_R1_001/7F_S24_R1_001- --runThreadN 8 --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonical --outSAMtype BAM SortedByCoordinate --limitIObufferSize 45000000 
+module unload star/2.7.2a
+    
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   960.00 sec.
+    Max Memory :                                 29683 MB
+    Average Memory :                             23550.03 MB
+    Total Requested Memory :                     48000.00 MB
+    Delta Memory :                               18317.00 MB
+    Max Swap :                                   -
+    Max Processes :                              6
+    Max Threads :                                14
+    Run time :                                   157 sec.
+    Turnaround time :                            655 sec.
+
+The output (if any) follows:
+
+Jul 04 14:22:35 ..... started STAR run
+Jul 04 14:22:35 ..... loading genome
+Jul 04 14:22:50 ..... started mapping
+Jul 04 14:24:46 ..... finished mapping
+Jul 04 14:24:48 ..... started sorting BAM
+Jul 04 14:25:09 ..... finished successfully
+
+
+PS:
+
+Read file <pipeline/logs/20200704_141415_7F_S24_R1_001-ReadsPerGene.out.tab-job/20200704_141415_7F_S24_R1_001-ReadsPerGene.out.tab-job.stderr> for stderr output of this job.
+
