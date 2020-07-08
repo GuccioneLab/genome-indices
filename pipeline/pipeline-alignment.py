@@ -131,7 +131,7 @@ def unzipGenomes(infile, outfile):
 ########## 3. Zip genomes
 #############################################
 
-@follows(downloadGenomes)
+@follows(unzipGenomes)
 
 @transform(glob.glob('hydra/*/ensembl/*.gtf') + glob.glob('hydra/*/ensembl/*.fa'),
 		   suffix(''),
@@ -152,7 +152,7 @@ def zipGenomes(infile, outfile):
 ########## 1. STAR
 #############################################
 
-@follows(downloadGenomes, unzipGenomes)
+@follows(downloadGenomes)
 
 @transform('hydra/*/ensembl/*.gtf',
 		   regex(r'(.*hg.*)/ensembl/.*.gtf'),
@@ -173,13 +173,42 @@ def buildStarIndex(infiles, outfile):
 	log_files = {x: os.path.join(logdir, 'job.')+x for x in ['stdout', 'stderr', 'lsf']}
 
 	# Run
-	run_job(cmd_str, outfile, modules=['star/2.7.3a'], W='02:00', GB=3, n=12, ow=True, **log_files)
+	run_job(cmd_str, outfile, modules=['star/2.7.3a'], W='02:00', GB=3, n=12, ow=False, **log_files)
+
+# Alignment
+'''
+# Single-end
+STAR \
+	--quantMode TranscriptomeSAM GeneCounts \
+	--genomeDir genomeDir \
+	--readFilesIn read.fastq.gz \
+	--readFilesCommand zcat \
+	--outFileNamePrefix outfile_prefix \
+	--runThreadN 8 \
+	--outSAMstrandField intronMotif \
+	--outFilterIntronMotifs RemoveNoncanonical \
+	--outSAMtype BAM SortedByCoordinate \
+	--limitIObufferSize 45000000
+
+# Paired-end
+STAR \
+	--quantMode TranscriptomeSAM GeneCounts \
+	--genomeDir genomeDir \
+	--readFilesIn read1.fastq.gz read2.fastq.gz \
+	--readFilesCommand zcat \
+	--outFileNamePrefix outfile_prefix \
+	--runThreadN 8 \
+	--outSAMstrandField intronMotif \
+	--outFilterIntronMotifs RemoveNoncanonical \
+	--outSAMtype BAM SortedByCoordinate \
+	--limitIObufferSize 45000000
+'''
 
 #############################################
 ########## 2. kallisto
 #############################################
 
-@follows(downloadGenomes, zipGenomes)
+@follows(downloadGenomes)
 
 @transform('hydra/*/ensembl/*cdna.all.fa.gz',
 		   regex(r'(.*)/ensembl/(.*).fa.gz'),
@@ -199,41 +228,52 @@ def buildKallistoIndex(infile, outfile):
 	log_files = {x: os.path.join(logdir, 'job.')+x for x in ['stdout', 'stderr', 'lsf']}
 
 	# Run
-	run_job(cmd_str, outfile, modules=['kallisto/0.46.1'], W='01:00', GB=24, n=1, ow=True, **log_files)
+	run_job(cmd_str, outfile, modules=['kallisto/0.46.1'], W='01:00', GB=24, n=1, ow=False, **log_files)
 
+# Alignment
+'''
+# Single-end
+kallisto quant -i index.idx -o outdir/ --single -l 200 -s 20 -t 8 input.fastq.gz &> output.log
 
-# STAR_INDEX="/Users/maayanlab/data/starindex/mouse_ensemble_90"
+# Paired-end
+kallisto quant -i index.idx -o outdir/ read1.fastq.gz read2.fastq.gz &> output.log
+'''
 
-# GENOME="/Users/maayanlab/data/hydra/Mus_musculus.GRCm38.dna.chromosome.fa"
-# ftp://ftp.ensembl.org/pub/release-99/fasta/mus_musculus/dna/
+#############################################
+########## 3. Salmon
+#############################################
 
-# GTF="/Users/maayanlab/data/hydra/Mus_musculus.GRCm38.90.gtf"
-# ftp://ftp.ensembl.org/pub/release-99/gtf/mus_musculus/
+@follows(downloadGenomes)
 
-# ~/OneDrive/star/STAR \
-# --runMode genomeGenerate \
-# --genomeDir $STAR_INDEX \
-# --genomeFastaFiles $GENOME \
-# --sjdbGTFfile $GTF \
-# --runThreadN 8 \
-# --sjdbOverhang 100
+@transform('hydra/*/ensembl/*cdna.all.fa.gz',
+		   regex(r'(.*)/ensembl/(.*).fa.gz'),
+		   r'\1/salmon/index')
 
+def buildSalmonIndex(infile, outfile):
 
-# # Command
-# cmd_str = '''STAR \
-# 	--quantMode TranscriptomeSAM GeneCounts \
-# 	--genomeDir {infiles[1]} \
-# 	--readFilesIn {infiles[0]} \
-# 	--readFilesCommand zcat \
-# 	--outFileNamePrefix {prefix} \
-# 	--runThreadN 8 \
-# 	--outSAMstrandField intronMotif \
-# 	--outFilterIntronMotifs RemoveNoncanonical \
-# 	--outSAMtype BAM SortedByCoordinate \
-# 	--limitIObufferSize 45000000
-# '''.format(**locals())
+	# Command
+	cmd_str = '''salmon index -t {infile} -i {outfile}'''.format(**locals())
 
-# cmd_str = '''kallisto quant -i {infiles[0][1]} -o {outfile} {infiles[0][0]} {infiles[1][0]} '''.format(**locals())
+	# Create log dir
+	logdir = os.path.join(os.path.dirname(outfile), 'job')
+	if not os.path.exists(logdir):
+		os.makedirs(logdir)
+
+	# Get log files
+	log_files = {x: os.path.join(logdir, 'job.')+x for x in ['stdout', 'stderr', 'lsf']}
+
+	# Run
+	run_job(cmd_str, outfile, modules=['salmon/1.2.1'], W='01:00', GB=8, n=4, ow=False, **log_files)
+
+# Alignment 
+'''
+# Single-end
+salmon quant -i transcripts_index -l A -r reads.fq.gz --validateMappings -o transcripts_quant
+
+# Paired-end
+salmon quant -i transcripts_index -l A -1 reads1.fq.gz -2 reads2.fq.gz --validateMappings -o transcripts_quant
+'''
+# See https://salmon.readthedocs.io/en/latest/salmon.html#what-s-this-libtype for info on -l flag
 
 #######################################################
 #######################################################
