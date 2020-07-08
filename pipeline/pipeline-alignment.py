@@ -16,15 +16,42 @@ import ruffus.cmdline as cmdline
 import sys
 import os
 import glob
-# import pandas as pd
-# import numpy as np
-# from rpy2.robjects import r, pandas2ri
-# pandas2ri.activate()
 
-##### 2. Custom modules #####
-# LSF running
+##### 2. LSF #####
+# 2.1 Import
 sys.path.append('/hpc/users/torred23/pipelines/support')
-from lsf import run_job, run_r_job, run_py_job
+import lsf
+
+# 2.2 Default parameters
+r_source = 'pipeline/scripts/alignment.R'
+py_source = 'pipeline/scripts/Alignment.py'
+P = 'acc_GuccioneLab'
+q = 'express'
+W = '00:30'
+GB = 5
+n = 1
+mkdir_val = True
+
+# 2.3 Wrappers
+# CMD
+def run_job(cmd_str, outfile, W = W, GB = GB, n = n, **kwargs):
+	lsf.run_job(cmd_str, outfile, P=P, q=q, W = W, GB = GB, n = n, mkdir=mkdir_val, **kwargs)
+
+# R
+def run_r_job(func_name, func_input, outfile, W = W, GB = GB, n = n, **kwargs):
+	lsf.run_r_job(func_name, func_input, outfile, r_source=r_source, P=P, q=q, W = W, GB = GB, n = n, mkdir=mkdir_val, **kwargs)
+
+# Py
+def run_py_job(func_name, func_input, outfile, W = W, GB = GB, n = n, **kwargs):
+	lsf.run_py_job(func_name, func_input, outfile, py_source=py_source, P=P, q=q, W = W, GB = GB, n = n, mkdir=mkdir_val, **kwargs)
+
+##### 3. Custom script imports #####
+# 3.1 Python
+#sys.path.append('pipeline/scripts')
+#import Alignment as P
+
+# 3.2 R
+# r.source(r_source)
 
 #############################################
 ########## 2. General Setup
