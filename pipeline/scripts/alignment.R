@@ -35,6 +35,10 @@ aggregate_counts <- function(infiles, method, txOut=TRUE, genome='hg38', name_fu
         
         # Cast
         result <- reshape2::dcast(ensembl_gene_id ~ sample, data = concatenated_dataframe, value.var='counts', fun.aggregate=sum)
+
+        # Fix rownames
+        rownames(result) <- result$ensembl_gene_id
+        result$ensembl_gene_id <- NULL
                
     # Kallisto and Salmon
     } else if (method %in% c('kallisto', 'salmon')) {
