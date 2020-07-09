@@ -3,3 +3,4 @@ genomes
 data
 _STARtmp
 *.sqlite
+.ipynb_checkpoints
