@@ -4,3 +4,4 @@ data
 _STARtmp
 *.sqlite
 .ipynb_checkpoints
+.Rdata

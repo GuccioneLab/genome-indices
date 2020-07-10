@@ -8,6 +8,7 @@
 ########## 1. Load libraries
 #############################################
 ##### 1. General support #####
+require(dplyr)
 
 ##### 2. Other libraries #####
 
@@ -54,6 +55,39 @@ aggregate_counts <- function(infiles, method, txOut=TRUE, genome='hg38', name_fu
     # Return
     return(result)
         
+}
+
+#############################################
+########## 2. Convert to gene symbol
+#############################################
+# Aggregates and converts counts to gene symbols
+
+convert_gene_symbols <- function(expression_dataframe, genome, merge_col = 'Gene stable ID', protein_coding = FALSE) {
+
+    # Get tx2g
+    biomart_dataframe <- as.data.frame(data.table::fread(Sys.glob(glue::glue('/sc/hydra/projects/GuccioneLab/genome-indices/{genome}/ensembl/*-biomart.txt'))))
+
+    # Filter columns
+    gene_info_dataframe <- unique(biomart_dataframe[,c(merge_col, 'Gene name', 'Gene type')])
+
+    # Filter PCG
+    if (protein_coding) {
+        gene_info_dataframe <- gene_info_dataframe[gene_info_dataframe[,'Gene type'] == 'protein_coding',]
+    }
+
+    # Merge
+    merged_dataframe <- merge(gene_info_dataframe, expression_dataframe, by.x=merge_col, by.y='row.names')
+
+    # Fix columns
+    merged_dataframe[,c(merge_col, 'Gene type')] <- NULL
+    colnames(merged_dataframe)[1] <- 'gene_symbol'
+
+    # Aggregate
+    aggregated_dataframe <- merged_dataframe %>% group_by(gene_symbol) %>% summarize_all(sum)
+
+    # Return
+    return(aggregated_dataframe)
+    
 }
 
 
