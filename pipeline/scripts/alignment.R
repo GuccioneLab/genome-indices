@@ -23,7 +23,7 @@ require(dplyr)
 #############################################
 # Aggregates counts from STAR, kallisto or salmon.
 
-aggregate_counts <- function(infiles, method, txOut=TRUE, genome='hg38', name_func=function(x) { x_split <- strsplit(x, '/')[[1]]; x_name <- x_split[length(x_split)-1]; return(x_name); }, star_col=2) {
+aggregate_counts <- function(infiles, method, summarize_to_gene=FALSE, filter_protein_coding=FALSE, name_func=function(x) { x_split <- strsplit(x, '/')[[1]]; x_name <- x_split[length(x_split)-1]; return(x_name); }, star_col=2) {
 
     # Add names
     names(infiles) <- sapply(infiles, name_func)
@@ -43,12 +43,25 @@ aggregate_counts <- function(infiles, method, txOut=TRUE, genome='hg38', name_fu
                
     # Kallisto and Salmon
     } else if (method %in% c('kallisto', 'salmon')) {
-      
-        # Get tx2g
-        tx2g <- data.table::fread(Sys.glob(glue::glue('/sc/hydra/projects/GuccioneLab/genome-indices/{genome}/ensembl/*-biomart.txt')))
 
-        # Tximport
-        result <- tximport::tximport(infiles, type=method, txOut=txOut, tx2g=tx2g[,c('Transcript stable ID version', 'Gene stable ID')])
+        # Load
+        require(tximeta)
+      
+        # Create coldata
+        coldata <- data.frame(row.names = sapply(infiles, name_func), files = infiles, names = infiles)
+
+        # Get SummarizedExperiment
+        result <- tximeta(coldata, type=method)
+
+        # Summarize to gene
+        if (summarize_to_gene) {
+            result <- summarizeToGene(result)
+        }
+
+        # Protein coding
+        if (filter_protein_coding) {
+            result <- result[rowRanges(result)$gene_biotype == 'protein_coding',]
+        }
 
     }
     
@@ -58,7 +71,35 @@ aggregate_counts <- function(infiles, method, txOut=TRUE, genome='hg38', name_fu
 }
 
 #############################################
-########## 2. Convert to gene symbol
+########## 2. Tximeta
+#############################################
+# Aggregates counts from STAR, kallisto or salmon.
+
+import_counts <- function(sample_dataframe, type='salmon', summarize_to_gene=TRUE, filter_protein_coding=TRUE) {
+
+    # Load
+    require(tximeta)
+
+    # Get SummarizedExperiment
+    se <- tximeta(sample_dataframe, type=type)
+
+    # Summarize to gene
+    if (summarize_to_gene) {
+        se <- summarizeToGene(se)
+    }
+
+    # Protein coding
+    if (filter_protein_coding) {
+        se <- se[rowRanges(se)$gene_biotype == 'protein_coding',]
+    }
+
+    # Return
+    return(se)
+    
+}
+
+#############################################
+########## 3. Convert to gene symbol
 #############################################
 # Aggregates and converts counts to gene symbols
 
@@ -83,7 +124,11 @@ convert_gene_symbols <- function(expression_dataframe, genome, merge_col = 'Gene
     colnames(merged_dataframe)[1] <- 'gene_symbol'
 
     # Aggregate
-    aggregated_dataframe <- merged_dataframe %>% group_by(gene_symbol) %>% summarize_all(sum)
+    aggregated_dataframe <- merged_dataframe %>% group_by(gene_symbol) %>% summarize_all(sum) %>% as.data.frame()
+
+    # Fix rownames
+    rownames(aggregated_dataframe) <- aggregated_dataframe$gene_symbol
+    aggregated_dataframe$gene_symbol <- NULL
 
     # Return
     return(aggregated_dataframe)
