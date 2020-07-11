@@ -8,7 +8,6 @@
 ########## 1. Load libraries
 #############################################
 ##### 1. General support #####
-require(dplyr)
 
 ##### 2. Other libraries #####
 
@@ -104,6 +103,9 @@ import_counts <- function(sample_dataframe, type='salmon', summarize_to_gene=TRU
 # Aggregates and converts counts to gene symbols
 
 convert_gene_symbols <- function(expression_dataframe, genome, merge_col = 'Gene stable ID', protein_coding = FALSE) {
+
+    # Load
+    suppressPackageStartupMessages(require(dplyr))
 
     # Get tx2g
     biomart_dataframe <- as.data.frame(data.table::fread(Sys.glob(glue::glue('/sc/hydra/projects/GuccioneLab/genome-indices/{genome}/ensembl/*-biomart.txt'))))
