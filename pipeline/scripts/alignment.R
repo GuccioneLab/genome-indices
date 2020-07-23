@@ -82,6 +82,11 @@ import_counts <- function(sample_dataframe, type='salmon', summarize_to_gene=TRU
     # Get SummarizedExperiment
     se <- tximeta(sample_dataframe, type=type)
 
+    # # Protein coding
+    # if (filter_protein_coding) {
+    #     se <- se[rowRanges(se)$tx_biotype == 'protein_coding',]
+    # }
+
     # Summarize to gene
     if (summarize_to_gene) {
         se <- summarizeToGene(se)
