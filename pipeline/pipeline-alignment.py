@@ -34,16 +34,16 @@ mkdir_val = True
 
 # 2.3 Wrappers
 # CMD
-def run_job(cmd_str, outfile, W = W, GB = GB, n = n, **kwargs):
-	lsf.run_job(cmd_str, outfile, P=P, q=q, W = W, GB = GB, n = n, mkdir=mkdir_val, **kwargs)
+def run_job(cmd_str, outfile, W = W, GB = GB, n = n, mkdir=mkdir_val, **kwargs):
+	lsf.run_job(cmd_str, outfile, P=P, q=q, W = W, GB = GB, n = n, mkdir=mkdir, **kwargs)
 
 # R
-def run_r_job(func_name, func_input, outfile, W = W, GB = GB, n = n, **kwargs):
-	lsf.run_r_job(func_name, func_input, outfile, r_source=r_source, P=P, q=q, W = W, GB = GB, n = n, mkdir=mkdir_val, **kwargs)
+def run_r_job(func_name, func_input, outfile, W = W, GB = GB, n = n, mkdir=mkdir_val, **kwargs):
+	lsf.run_r_job(func_name, func_input, outfile, r_source=r_source, P=P, q=q, W = W, GB = GB, n = n, mkdir=mkdir, **kwargs)
 
 # Py
-def run_py_job(func_name, func_input, outfile, W = W, GB = GB, n = n, **kwargs):
-	lsf.run_py_job(func_name, func_input, outfile, py_source=py_source, P=P, q=q, W = W, GB = GB, n = n, mkdir=mkdir_val, **kwargs)
+def run_py_job(func_name, func_input, outfile, W = W, GB = GB, n = n, mkdir=mkdir_val, **kwargs):
+	lsf.run_py_job(func_name, func_input, outfile, py_source=py_source, P=P, q=q, W = W, GB = GB, n = n, mkdir=mkdir, **kwargs)
 
 ##### 3. Custom script imports #####
 # 3.1 Python
@@ -97,7 +97,7 @@ def downloadJobs():
 	for organism, genomes in genome_dict.items():
 		if organism in ['human']:
 			for genome in genomes:
-				outdir = 'hydra/{assembly}/ensembl/{assembly}.log'.format(**locals(), **genome)
+				outdir = 'arion/{assembly}/ensembl/{assembly}.log'.format(**locals(), **genome)
 				yield [None, outdir, organism, genome]
 
 @files(downloadJobs)
@@ -116,9 +116,9 @@ def downloadGenomes(infile, outfile, organism, genome):
 ########## 2. Unzip genomes
 #############################################
 
-@follows(downloadGenomes)
+# @follows(downloadGenomes)
 
-@transform('hydra/*/ensembl/*.gz',
+@transform('arion/*/ensembl/*gtf.gz',
 		   suffix('.gz'),
 		   '')
 
@@ -133,7 +133,7 @@ def unzipGenomes(infile, outfile):
 
 @follows(unzipGenomes)
 
-@transform(glob.glob('hydra/*/ensembl/*.gtf') + glob.glob('hydra/*/ensembl/*.fa'),
+@transform(glob.glob('arion/*/ensembl/*.gtf') + glob.glob('arion/*/ensembl/*.fa'),
 		   suffix(''),
 		   '.gz')
 
@@ -152,9 +152,9 @@ def zipGenomes(infile, outfile):
 ########## 1. STAR
 #############################################
 
-@follows(downloadGenomes)
+# @follows(downloadGenomes)
 
-@transform('hydra/*/ensembl/*.gtf',
+@transform('arion/*/ensembl/*.gtf',
 		   regex(r'(.*hg.*)/ensembl/.*.gtf'),
 		   add_inputs(r'\1/ensembl/*primary_assembly.fa'),
 		   r'\1/STAR/')
@@ -208,9 +208,9 @@ STAR \
 ########## 2. kallisto
 #############################################
 
-@follows(downloadGenomes)
+# @follows(downloadGenomes)
 
-@transform('hydra/*/ensembl/*cdna.all.fa.gz',
+@transform('arion/*/ensembl/*cdna.all.fa.gz',
 		   regex(r'(.*)/ensembl/(.*).fa.gz'),
 		   r'\1/kallisto/\2.idx')
 
@@ -243,9 +243,9 @@ kallisto quant -i index.idx -o outdir/ read1.fastq.gz read2.fastq.gz &> output.l
 ########## 3. Salmon
 #############################################
 
-@follows(downloadGenomes)
+# @follows(downloadGenomes)
 
-@transform('hydra/*/ensembl/*cdna.all.fa.gz',
+@transform('arion/*/ensembl/*cdna.all.fa.gz',
 		   regex(r'(.*)/ensembl/(.*).fa.gz'),
 		   r'\1/salmon/index')
 
@@ -274,6 +274,49 @@ salmon quant -i transcripts_index -l A -r reads.fq.gz -p 8 --validateMappings -o
 salmon quant -i transcripts_index -l A -1 reads1.fq.gz -2 reads2.fq.gz -p 8 --validateMappings -o transcripts_quant
 '''
 # See https://salmon.readthedocs.io/en/latest/salmon.html#what-s-this-libtype for info on -l flag
+
+#######################################################
+#######################################################
+########## S3. Splicing
+#######################################################
+#######################################################
+
+#############################################
+########## 1. SUPPA IOI
+#############################################
+
+@transform('arion/*/ensembl/*.gtf',
+		   regex(r'(.*)/ensembl/(.*).gtf'),
+		   r'\1/suppa/io./\2*.io.',
+		   r'\1/suppa/{file_format}/\2')
+
+def buildSuppaIndex(infile, outfiles, outfileRoot):
+
+	# Loop through formats
+	for file_format in ['ioi', 'ioe']:
+
+		# Get outfile
+		outfile_basename = outfileRoot.format(**locals())
+
+		# Create log dir
+		logdir = os.path.join(os.path.dirname(outfile_basename), 'job')
+		if not os.path.exists(logdir):
+			os.makedirs(logdir)
+
+		# Get log files
+		log_files = {x: os.path.join(logdir, 'job.')+x for x in ['stdout', 'stderr', 'lsf']}
+		
+		# Command
+		suppa_path = '/hpc/users/torred23/.conda/envs/env_R4/bin/suppa.py'
+
+		# Command
+		if file_format == 'ioe':
+			cmd_str = '''python {suppa_path} generateEvents -i {infile} -o {outfile_basename} -f {file_format} -e SE SS MX RI FL'''.format(**locals())
+		elif file_format == 'ioi':
+			cmd_str = '''python {suppa_path} generateEvents -i {infile} -o {outfile_basename} -f {file_format}'''.format(**locals())
+
+		# Run
+		run_job(cmd_str, outfile_basename, W='00:10', GB=8, n=1, ow=False, mkdir=False, **log_files)
 
 #######################################################
 #######################################################
