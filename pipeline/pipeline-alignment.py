@@ -307,13 +307,10 @@ def buildSuppaIndex(infile, outfiles, outfileRoot):
 		log_files = {x: os.path.join(logdir, 'job.')+x for x in ['stdout', 'stderr', 'lsf']}
 		
 		# Command
-		suppa_path = '/hpc/packages/minerva-centos7/suppa/2.3/suppa.py'
-
-		# Command
 		if file_format == 'ioe':
-			cmd_str = '''python {suppa_path} generateEvents -i {infile} -o {outfile_basename} -f {file_format} -e SE SS MX RI FL'''.format(**locals())
+			cmd_str = '''python \$SUPPA_HOME/suppa.py generateEvents -i {infile} -o {outfile_basename} -f {file_format} -e SE SS MX RI FL'''.format(**locals())
 		elif file_format == 'ioi':
-			cmd_str = '''python {suppa_path} generateEvents -i {infile} -o {outfile_basename} -f {file_format}'''.format(**locals())
+			cmd_str = '''python \$SUPPA_HOME/suppa.py generateEvents -i {infile} -o {outfile_basename} -f {file_format}'''.format(**locals())
 
 		# Run
 		run_job(cmd_str, outfile_basename, W='00:10', modules=['suppa/2.3'], GB=3, n=1, ow=False, mkdir=False, **log_files)
