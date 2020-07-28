@@ -282,7 +282,7 @@ salmon quant -i transcripts_index -l A -1 reads1.fq.gz -2 reads2.fq.gz -p 8 --va
 #######################################################
 
 #############################################
-########## 1. SUPPA IOI
+########## 1. SUPPA
 #############################################
 
 @transform('arion/*/ensembl/*.gtf',
@@ -307,7 +307,7 @@ def buildSuppaIndex(infile, outfiles, outfileRoot):
 		log_files = {x: os.path.join(logdir, 'job.')+x for x in ['stdout', 'stderr', 'lsf']}
 		
 		# Command
-		suppa_path = '/hpc/users/torred23/.conda/envs/env_R4/bin/suppa.py'
+		suppa_path = '/hpc/packages/minerva-centos7/suppa/2.3/suppa.py'
 
 		# Command
 		if file_format == 'ioe':
@@ -316,7 +316,7 @@ def buildSuppaIndex(infile, outfiles, outfileRoot):
 			cmd_str = '''python {suppa_path} generateEvents -i {infile} -o {outfile_basename} -f {file_format}'''.format(**locals())
 
 		# Run
-		run_job(cmd_str, outfile_basename, W='00:10', GB=8, n=1, ow=False, mkdir=False, **log_files)
+		run_job(cmd_str, outfile_basename, W='00:10', modules=['suppa/2.3'], GB=3, n=1, ow=False, mkdir=False, **log_files)
 
 #######################################################
 #######################################################
