@@ -287,8 +287,8 @@ salmon quant -i transcripts_index -l A -1 reads1.fq.gz -2 reads2.fq.gz -p 8 --va
 
 @transform('arion/*/ensembl/*.gtf',
 		   regex(r'(.*)/ensembl/(.*).gtf'),
-		   r'\1/suppa/io./\2*.io.',
-		   r'\1/suppa/{file_format}/\2')
+		   r'\1/SUPPA/io./\2*.io.',
+		   r'\1/SUPPA/{file_format}/\2')
 
 def buildSuppaIndex(infile, outfiles, outfileRoot):
 
