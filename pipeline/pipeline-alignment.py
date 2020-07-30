@@ -70,6 +70,7 @@ genome_dict = {
             "primary_assembly_url": "ftp://ftp.ensembl.org/pub/release-99/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz",
 			"cdna_url": "ftp://ftp.ensembl.org/pub/release-99/fasta/mus_musculus/cdna/Mus_musculus.GRCm38.cdna.all.fa.gz",
             "gtf_url": "ftp://ftp.ensembl.org/pub/release-99/gtf/mus_musculus/Mus_musculus.GRCm38.99.gtf.gz",
+            "gff3_url": "ftp://ftp.ensembl.org/pub/release-99/gff3/mus_musculus/Mus_musculus.GRCm38.99.gff3.gz"
         }
     ],
     "human": [
@@ -78,7 +79,8 @@ genome_dict = {
             "synonym": "GRCh38",
             "primary_assembly_url": "ftp://ftp.ensembl.org/pub/release-99/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz",
 			"cdna_url": "ftp://ftp.ensembl.org/pub/release-99/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz",
-            "gtf_url": "ftp://ftp.ensembl.org/pub/release-99/gtf/homo_sapiens/Homo_sapiens.GRCh38.99.gtf.gz"
+            "gtf_url": "ftp://ftp.ensembl.org/pub/release-99/gtf/homo_sapiens/Homo_sapiens.GRCh38.99.gtf.gz",
+            "gff3_url": "ftp://ftp.ensembl.org/pub/release-99/gff3/homo_sapiens/Homo_sapiens.GRCh38.99.gff3.gz"
         }
     ]
 }
