@@ -120,7 +120,7 @@ def downloadGenomes(infile, outfile, organism, genome):
 
 # @follows(downloadGenomes)
 
-@transform('arion/*/ensembl/*gtf.gz',
+@transform('arion/*/ensembl/*assembly.fa.gz',
 		   suffix('.gz'),
 		   '')
 
@@ -276,6 +276,37 @@ salmon quant -i transcripts_index -l A -r reads.fq.gz -p 8 --validateMappings -o
 salmon quant -i transcripts_index -l A -1 reads1.fq.gz -2 reads2.fq.gz -p 8 --validateMappings -o transcripts_quant
 '''
 # See https://salmon.readthedocs.io/en/latest/salmon.html#what-s-this-libtype for info on -l flag
+
+#############################################
+########## 4. Bowtie2
+#############################################
+
+# @follows(downloadGenomes)
+
+@transform('arion/*/ensembl/*dna.primary_assembly.fa',
+		   regex(r'(.*)/(.*)/ensembl/(.*).fa'),
+		   r'\1/\2/bowtie/\2.1.bt2')
+
+def buildBowtieIndex(infile, outfile):
+
+	# Command
+	outname = outfile.replace('.1.bt2', '')
+	cmd_str = '''bowtie2-build --threads 6 {infile} {outname}'''.format(**locals())
+
+	# Create log dir
+	logdir = os.path.join(os.path.dirname(outfile), 'job')
+	if not os.path.exists(logdir):
+		os.makedirs(logdir)
+
+	# Get log files
+	log_files = {x: os.path.join(logdir, 'job.')+x for x in ['stdout', 'stderr', 'lsf']}
+
+	# Run
+	run_job(cmd_str, outfile, modules=['bowtie2/2.4.1'], W='02:00', GB=6, n=6, ow=True, **log_files)
+
+# Alignment 
+'''
+'''
 
 #######################################################
 #######################################################
