@@ -285,9 +285,9 @@ salmon quant -i transcripts_index -l A -1 reads1.fq.gz -2 reads2.fq.gz -p 8 --va
 
 @transform('arion/*/ensembl/*dna.primary_assembly.fa',
 		   regex(r'(.*)/(.*)/ensembl/(.*).fa'),
-		   r'\1/\2/bowtie/\2.1.bt2')
+		   r'\1/\2/bowtie2/\2.1.bt2')
 
-def buildBowtieIndex(infile, outfile):
+def buildBowtie2Index(infile, outfile):
 
 	# Command
 	outname = outfile.replace('.1.bt2', '')
@@ -306,6 +306,11 @@ def buildBowtieIndex(infile, outfile):
 
 # Alignment 
 '''
+# Single-end
+bowtie2 -x index -U read1.fastq.gz -q -p 12
+
+# Paired-end
+bowtie2 -x index -1 read1.fastq.gz -2 read2.fastq.gz -q -p 12 # -X 2000 for ATAC-Seq
 '''
 
 #######################################################
