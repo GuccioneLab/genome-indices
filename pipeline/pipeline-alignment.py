@@ -313,6 +313,42 @@ bowtie2 -x index -U read1.fastq.gz -q -p 12
 bowtie2 -x index -1 read1.fastq.gz -2 read2.fastq.gz -q -p 12 # -X 2000 for ATAC-Seq
 '''
 
+#############################################
+########## 5. GMap
+#############################################
+
+# @follows(downloadGenomes)
+
+@transform('arion/*/ensembl/*dna.primary_assembly.fa',
+		   regex(r'(.*)/(.*)/ensembl/.*(GR.*).dna.primary_assembly.fa'),
+		   r'\1/\2/gmap/\3')
+
+def buildGMapIndex(infile, outfile):
+
+	# Command
+	outdir, outname = outfile.rsplit('/', 1)
+	cmd_str = '''gmap_build -D {outdir} -d {outname} {infile}'''.format(**locals())
+
+	# Create log dir
+	logdir = os.path.join(os.path.dirname(outfile), 'job')
+	if not os.path.exists(logdir):
+		os.makedirs(logdir)
+
+	# Get log files
+	log_files = {x: os.path.join(logdir, 'job.')+x for x in ['stdout', 'stderr', 'lsf']}
+
+	# Run
+	run_job(cmd_str, outfile, modules=['gmap/2019-02-15'], W='03:00', GB=15, n=1, ow=True, **log_files)
+
+# Alignment 
+'''
+# Single-end
+
+
+# Paired-end
+
+'''
+
 #######################################################
 #######################################################
 ########## S3. Splicing
